@@ -33,10 +33,10 @@ jobs:
         git init
         git config --local user.name $USER_NAME
         git config --local user.email $USER_EMAIL
-        git status
         git remote add origin https://$MY_SECRET@github.com/$GITHUB_REPOSITORY.git
         git checkout -b gh-pages
-        git add --all
+        git add .
+        git status
         git commit -m "deploy to Github pages"
         git push origin gh-pages -f
         echo 🤘 deploy gh-pages complete.
