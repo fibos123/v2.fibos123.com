@@ -19,10 +19,7 @@
                 class="px-6 py-3 bg-gray-50 text-left text-xs text-gray-500 tracking-wider"
                 width="50"
               >#</th>
-              <th
-                class="py-3 bg-gray-50 text-center text-xs text-gray-500 tracking-wider"
-                width="100"
-              >节点标识</th>
+              <th class="py-3 bg-gray-50 text-center text-xs text-gray-500 tracking-wider">节点标识</th>
               <th class="px-6 py-3 bg-gray-50 text-left text-xs text-gray-500 tracking-wider">节点名称</th>
               <th class="px-6 py-3 bg-gray-50 text-left text-xs text-gray-500 tracking-wider">状态</th>
               <th class="px-6 py-3 bg-gray-50 text-left text-xs text-gray-500 tracking-wider">得票率</th>
@@ -41,7 +38,7 @@
             >
               <td class="px-6 py-4 text-gray-500">{{index+1}}</td>
               <td class="px-2 py-2 text-center">
-                <img class="h-12 w-12 inline-block" :src="item.logo" alt />
+                <img class="h-12 w-12 inline-block" :src="item.logo" alt v-if="item.logo" />
               </td>
               <td class="px-6 py-4">
                 <div class="text-gray-900">{{item.candidate_name}}</div>

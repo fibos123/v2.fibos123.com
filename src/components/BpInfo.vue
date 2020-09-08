@@ -10,7 +10,7 @@
           class="text-indigo-500 hover:text-indigo-800 transition duration-150 ease-in-out h-6 block"
         >{{item.urlFull}}</a>
       </div>
-      <div v-if="item">
+      <div v-if="item" class="overflow-x-auto">
         <h2 class="text-xl py-4">基本信息</h2>
         <table class="w-full">
           <tr>
@@ -176,5 +176,9 @@ tr:nth-child(even) {
   --bg-opacity: 1;
   background-color: #f7fafc;
   background-color: rgba(247, 250, 252, var(--bg-opacity));
+}
+th,
+td {
+  white-space: nowrap;
 }
 </style>
