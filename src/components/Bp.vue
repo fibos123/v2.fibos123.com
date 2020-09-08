@@ -6,7 +6,7 @@
       <div class="flex flex-wrap gap-4 text-center">
         <div v-for="(item) in card" :key="item.name" class="flex-1 rounded bg-white p-4">
           <h2 class="text-gray-600">{{item.name}}</h2>
-          <div class="text-lg">{{item.value}}</div>
+          <div class="text-lg h-6 whitespace-no-wrap">{{item.value}}</div>
         </div>
       </div>
     </div>
@@ -19,6 +19,10 @@
                 class="px-6 py-3 bg-gray-50 text-left text-xs text-gray-500 tracking-wider"
                 width="50"
               >#</th>
+              <th
+                class="py-3 bg-gray-50 text-center text-xs text-gray-500 tracking-wider"
+                width="100"
+              >节点标识</th>
               <th class="px-6 py-3 bg-gray-50 text-left text-xs text-gray-500 tracking-wider">节点名称</th>
               <th class="px-6 py-3 bg-gray-50 text-left text-xs text-gray-500 tracking-wider">状态</th>
               <th class="px-6 py-3 bg-gray-50 text-left text-xs text-gray-500 tracking-wider">得票率</th>
@@ -30,43 +34,48 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr
-              v-for="i in 100"
-              :key="i"
-              v-bind:class="{'bg-gray-100': !(i % 2)}"
+              v-for="(item, index) in bpList"
+              :key="index"
+              v-bind:class="{'bg-gray-100': index % 2}"
               class="hover:bg-gray-200"
             >
-              <td class="px-6 py-4 whitespace-no-wrap text-gray-500">{{i}}</td>
-              <td class="px-6 py-4 whitespace-no-wrap">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0 h-10 w-10">
-                    <img class="h-10 w-10 rounded-full" src="/public/images/logo_256.png" alt />
-                  </div>
-                  <div class="ml-4">
-                    <div class="text-gray-900">FIBOS123</div>
-                    <div class="text-gray-500">fibos123comm</div>
-                  </div>
-                </div>
+              <td class="px-6 py-4 text-gray-500">{{index+1}}</td>
+              <td class="px-2 py-2 text-center">
+                <img class="h-12 w-12 inline-block" :src="item.logo" alt />
               </td>
-              <td class="px-6 py-4 whitespace-no-wrap">
+              <td class="px-6 py-4">
+                <div class="text-gray-900">{{item.candidate_name}}</div>
+                <div class="text-gray-500">{{item.owner}}</div>
+              </td>
+              <td class="px-6 py-4">
                 <span
+                  v-if="index+1 <= 21"
                   class="px-2 inline-flex text-xs font-semibold rounded-full bg-green-100 text-green-800"
                 >当选节点</span>
+                <span
+                  v-if="index+1 > 21"
+                  class="px-2 inline-flex text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
+                >待机节点</span>
               </td>
-              <td class="px-6 py-4 whitespace-no-wrap">
-                <div class="text-gray-900">7.230 %</div>
-                <div class="text-gray-500 text-sm">229,398,953 FO</div>
+              <td class="px-6 py-4">
+                <div class="text-gray-900">{{item.weight_percent}} %</div>
+                <div class="text-gray-500 text-sm">{{item.staked}} FO</div>
               </td>
-              <td class="px-6 py-4 whitespace-no-wrap text-gray-500">1,862 FO</td>
-              <td class="px-6 py-4 whitespace-no-wrap text-gray-500">0 FO</td>
-              <td class="px-6 py-4 whitespace-no-wrap text-gray-500">
+              <td class="px-6 py-4 text-gray-500">{{item.claim_rewards_total}} FO</td>
+              <td
+                class="px-6 py-4"
+                v-bind:class="{ 'text-gray-500': item.claim_rewards_unreceived === '0', 'text-green-500 font-bold': item.claim_rewards_unreceived !== '0' }"
+              >{{item.claim_rewards_unreceived}} FO</td>
+              <td class="px-6 py-4 text-gray-500">
                 <a
-                  href
+                  :href="item.urlFull"
+                  target="_blank"
                   class="text-indigo-500 hover:text-indigo-800 transition duration-150 ease-in-out"
-                >https://www.fibos123.com</a>
+                >{{item.urlSimple}}</a>
               </td>
-              <td class="px-6 py-4 whitespace-no-wrap">
+              <td class="px-6 py-4">
                 <router-link
-                  to="/bp/fibos123comm"
+                  :to="'/bp/'+item.owner"
                   class="text-indigo-500 hover:text-indigo-800 transition duration-150 ease-in-out"
                 >详情</router-link>
               </td>
@@ -80,28 +89,79 @@
 
 
 <script>
+import Bp from "../models/bp";
+import dayjs from "dayjs";
+
 export default {
   data() {
     return {
+      bp: "",
+      timer: "",
+      bpList: [],
       card: [
         {
           name: "生产者",
-          value: "chinafibosbp",
-        },
-        {
-          name: "最新区块",
-          value: "126,648,550",
-        },
-        {
-          name: "不可逆区块",
-          value: "126,648,224",
+          value: "",
         },
         {
           name: "出块时间",
-          value: "2020-09-07 23:37:20",
+          value: "",
+        },
+        {
+          name: "最新区块",
+          value: "",
+        },
+        {
+          name: "不可逆区块",
+          value: "",
         },
       ],
     };
   },
+  methods: {
+    async getInfo() {
+      this.card = [
+        {
+          name: "生产者",
+          value: this.bp.info.head_block_producer,
+        },
+        {
+          name: "出块时间",
+          value: dayjs(this.bp.info.head_block_time + "Z").format(
+            "YYYY-MM-DD HH:mm:ss"
+          ),
+        },
+        {
+          name: "最新区块",
+          value: this.bp.info.head_block_num.toLocaleString(),
+        },
+        {
+          name: "不可逆区块",
+          value: this.bp.info.last_irreversible_block_num.toLocaleString(),
+        },
+      ];
+    },
+  },
+
+  async created() {
+    this.bp = new Bp();
+    await this.bp.getInfo();
+    this.getInfo();
+    await this.bp.init();
+    this.bpList = this.bp.bpList;
+    this.timer = setInterval(this.getInfo, 1000);
+  },
+
+  beforeUnmount() {
+    this.bp.unmount();
+    clearInterval(this.timer);
+  },
 };
 </script>
+
+<style scoped>
+th,
+td {
+  white-space: nowrap;
+}
+</style>

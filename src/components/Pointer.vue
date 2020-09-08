@@ -37,26 +37,41 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr
-                v-for="i in 50"
-                :key="i"
-                v-bind:class="{'bg-gray-100': !(i % 2)}"
+                v-for="(item, index) in items"
+                :key="index"
+                v-bind:class="{'bg-gray-100': !(index % 2)}"
                 class="hover:bg-gray-200"
               >
-                <td class="px-6 py-4 whitespace-no-wrap text-gray-500">{{i}}</td>
+                <td class="px-6 py-4 whitespace-no-wrap text-gray-500">{{index+1}}</td>
                 <td class="px-6 py-4 whitespace-no-wrap">
                   <div class="flex items-center">
-                    <div class="ml-4">
-                      <div class="text-gray-900">fibos123comm</div>
-                    </div>
+                    <div class="text-gray-900">{{item.owner}}</div>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-no-wrap">
                   <span
+                    v-if="item.status==='waiting'"
+                    class="px-2 inline-flex text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
+                  >获取中</span>
+
+                  <span
+                    v-if="item.status==='success'"
                     class="px-2 inline-flex text-xs font-semibold rounded-full bg-green-100 text-green-800"
-                  >126,662,484 ( v1.7.1.11 )</span>
+                  >{{item.number}} ( {{item.version}} )</span>
+
+                  <span
+                    v-if="item.status==='fail'"
+                    class="px-2 inline-flex text-xs font-semibold rounded-full bg-red-100 text-red-800"
+                  >无法访问</span>
+
+                  <span
+                    v-if="item.status==='notset'"
+                    class="px-2 inline-flex text-xs font-semibold rounded-full bg-gray-100 text-gray-800"
+                  >未设置</span>
+
                   <a
                     target="_blank"
-                    href="https://to-rpc.fibos.io/v1/chain/get_info"
+                    :href="item.ssl_endpoint + '/v1/chain/get_info'"
                     class="ml-4 text-indigo-500"
                     title="打开新窗口查看接入点"
                   >
@@ -85,51 +100,7 @@
           <div class="bg-white px-4 pt-5">
             <h3 class="text-lg leading-6 font-medium text-gray-900 pb-2">可用接入点列表</h3>
             <div class="sm:flex sm:items-start">
-              <pre class="h-64 w-full overflow-auto text-sm">{
-  "p2p-peer-address": [
-    "to-rpc.fibos.io:9870",
-    "fibos.starteos.io:9876",
-    "sl-p2p.fibos.io:9870",
-    "va-p2p.fibos.io:9870",
-    "ca-p2p.fibos.io:9870",
-    "p2p-mainnet.bitewd.com:9870",
-    "api.xxq.pub:8888",
-    "ln-p2p.fibos.io:9870",
-    "seed.fibos.rocks:10100",
-    "p2p-mainnet.loveyy.xyz:9870",
-    "to-p2p.fibos.io:9870",
-    "p2p-mainnet.qingah.com:9870"
-  ],
-  "http-api-address": [
-    "http://api.fibos.me",
-    "http://api.hellofibos.com",
-    "http://to-rpc.fibos.io:8870",
-    "http://fibos.pool.lichang.io",
-    "http://api-fibos.starteos.io",
-    "http://sl-rpc.fibos.io:8870",
-    "http://va-rpc.fibos.io:8870",
-    "http://ca-rpc.fibos.io:8870",
-    "http://api.xxq.pub",
-    "http://rpc-mainnet.bitewd.com",
-    "http://api.fibos.rocks",
-    "http://ln-rpc.fibos.io:8870",
-    "http://fibos-mainnet.bitewd.com",
-    "http://api.amttothemoon.com:9800"
-  ],
-  "https-api-address": [
-    "https://to-rpc.fibos.io",
-    "https://fibos.pool.lichang.io",
-    "https://api-fibos.starteos.io",
-    "https://sl-rpc.fibos.io",
-    "https://va-rpc.fibos.io",
-    "https://ca-rpc.fibos.io",
-    "https://rpc-mainnet.bitewd.com",
-    "https://api.xxq.pub",
-    "https://ln-rpc.fibos.io",
-    "https://api.fibos.rocks",
-    "https://fibos-mainnet.bitewd.com"
-  ]
-}</pre>
+              <pre class="h-64 w-full overflow-auto text-sm">{{accessPoints}}</pre>
             </div>
           </div>
           <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
@@ -147,12 +118,52 @@
   </div>
 </template>
 
+
 <script>
+import Pointer from "../models/pointer";
 export default {
   data() {
     return {
+      timer: "",
       isOpen: false,
+      pointer: "",
+      items: [],
+      accessPoints: {
+        "p2p-peer-address": [],
+        "http-api-address": [],
+        "https-api-address": [],
+      },
     };
+  },
+  methods: {
+    async getInfo() {
+      this.items = this.pointer.list;
+      const successList = this.items.filter(
+        (item) => item.status === "success"
+      );
+      this.accessPoints["p2p-peer-address"] = successList
+        .filter((item) => item.p2p_endpoint)
+        .map((item) => item.p2p_endpoint);
+
+      this.accessPoints["http-api-address"] = successList
+        .filter((item) => item.api_endpoint)
+        .map((item) => item.api_endpoint);
+
+      this.accessPoints["https-api-address"] = successList
+        .filter((item) => item.ssl_endpoint)
+        .map((item) => item.ssl_endpoint);
+    },
+  },
+
+  async created() {
+    this.pointer = new Pointer();
+    this.pointer.getProducerJson();
+    this.getInfo();
+    this.timer = setInterval(this.getInfo, 100);
+  },
+
+  beforeUnmount() {
+    clearInterval(this.timer);
   },
 };
 </script>

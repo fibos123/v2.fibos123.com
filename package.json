@@ -5,10 +5,14 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "lint-fix": "vue-cli-service lint --fix"
   },
   "dependencies": {
+    "axios": "^0.20.0",
     "core-js": "^3.6.5",
+    "dayjs": "^1.8.35",
+    "lodash": "^4.17.20",
     "tailwindcss": "^1.8.4",
     "vue": "^3.0.0-0",
     "vue-router": "^4.0.0-alpha.14"
@@ -34,7 +38,20 @@
     "parserOptions": {
       "parser": "babel-eslint"
     },
-    "rules": {}
+    "rules": {
+      "no-unused-vars": "off",
+      "quotes": [
+        "warn",
+        "double",
+        {
+          "avoidEscape": true
+        }
+      ],
+      "quote-props": [
+        "warn",
+        "as-needed"
+      ]
+    }
   },
   "browserslist": [
     "> 1%",
