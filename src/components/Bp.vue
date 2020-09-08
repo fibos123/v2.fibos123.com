@@ -38,7 +38,11 @@
             >
               <td class="px-6 py-4 text-gray-500">{{index+1}}</td>
               <td class="px-2 py-2 text-center">
-                <img class="h-12 w-12 inline-block" :src="item.logo" alt v-if="item.logo" />
+                <span
+                  class="h-12 w-12 block bg-cover mx-auto"
+                  v-if="item.logo"
+                  v-bind:style="{'background-image': 'url('+item.logo+')'}"
+                ></span>
               </td>
               <td class="px-6 py-4">
                 <div class="text-gray-900">{{item.candidate_name}}</div>
