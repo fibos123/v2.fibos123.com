@@ -72,6 +72,7 @@
                   <a
                     target="_blank"
                     :href="item.ssl_endpoint + '/v1/chain/get_info'"
+                    v-if="item.status!=='notset'"
                     class="ml-4 text-indigo-500"
                     title="打开新窗口查看接入点"
                   >
