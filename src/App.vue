@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :class="$route.path.replace('/', '')">
+  <div id="app" v-bind:class="{'about': $route.path.replace('/', '') === 'about'}">
     <div class="bg-gray-100 mx-auto min-h-screen relative pb-32">
       <Header />
       <router-view />
